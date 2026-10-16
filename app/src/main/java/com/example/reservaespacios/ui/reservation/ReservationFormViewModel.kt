@@ -2,10 +2,10 @@ package com.example.reservaespacios.ui.reservation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.reservaespacios.model.Space
+import com.example.reservaespacios.AppContainer
+import com.example.reservaespacios.data.SpaceRepository
 import com.example.reservaespacios.ui.reservation.ReservationField.*
 import com.example.reservaespacios.validation.ReservationValidators
-
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,18 +14,26 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-// Datos de ejemplo; más adelante vendrán de Room.
-private val sampleSpaces = listOf(
-    Space(1, "Teatro", 120),
-    Space(2, "Estudio de grabación", 15),
-    Space(3, "Taller de diseño", 30),
-    Space(4, "Sala común", 40)
-)
-
-class ReservationFormViewModel : ViewModel() {
+class ReservationFormViewModel(
+    private val spaceRepository: SpaceRepository = AppContainer.spaceRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(initialState())
     val uiState: StateFlow<ReservationFormUiState> = _uiState.asStateFlow()
+
+    init {
+        // La lista de espacios ahora viene del repositorio: si el administrador crea uno, aparece aquí.
+        viewModelScope.launch {
+            spaceRepository.spaces.collect { spaces ->
+                update { state ->
+                    state.copy(
+                        spaces = spaces,
+                        space = state.space?.let { selected -> spaces.find { it.id == selected.id } }
+                    )
+                }
+            }
+        }
+    }
 
     fun onEvent(event: ReservationFormEvent) {
         when (event) {
@@ -45,7 +53,7 @@ class ReservationFormViewModel : ViewModel() {
     private fun submit() {
         if (_uiState.value.isSubmitting) return
         // Al enviar, se marcan todos los campos para mostrar todos los errores pendientes.
-        update { it.copy(touched = entries.toSet()) }
+        update { it.copy(touched = ReservationField.entries.toSet()) }
         if (!_uiState.value.isFormValid) return
 
         viewModelScope.launch {
@@ -55,7 +63,8 @@ class ReservationFormViewModel : ViewModel() {
         }
     }
 
-    private fun initialState() = validate(ReservationFormUiState(spaces = sampleSpaces))
+    private fun initialState() =
+        validate(ReservationFormUiState(spaces = spaceRepository.spaces.value))
 
     /** Aplica el cambio y recalcula los errores de TODOS los campos (hay reglas cruzadas). */
     private fun update(transform: (ReservationFormUiState) -> ReservationFormUiState) {

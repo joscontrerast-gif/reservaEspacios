@@ -3,8 +3,11 @@ package com.example.reservaespacios
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import com.example.reservaespacios.ui.reservation.ReservationFormRoute
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import com.example.reservaespacios.ui.AppRoot
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -12,7 +15,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Reemplaza MaterialTheme por el tema que te generó Android Studio si quieres.
             MaterialTheme {
-                ReservationFormRoute()
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    AppRoot()
+                }
             }
         }
     }

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -37,13 +38,15 @@ import com.example.reservaespacios.model.UserProfile
 import com.example.reservaespacios.ui.myreservations.MyReservationsRoute
 import com.example.reservaespacios.ui.reservation.ReservationFormRoute
 import com.example.reservaespacios.ui.review.ReviewRoute
+import com.example.reservaespacios.ui.schedule.ScheduleFormRoute
 import com.example.reservaespacios.ui.spaces.SpaceFormRoute
 
 private data class NavTab(val label: String, val icon: ImageVector)
 
 private val adminTabs = listOf(
     NavTab("Solicitudes", Icons.Filled.Notifications),
-    NavTab("Espacios", Icons.Filled.MeetingRoom)
+    NavTab("Espacios", Icons.Filled.MeetingRoom),
+    NavTab("Horarios", Icons.Filled.Schedule)
 )
 private val userTabs = listOf(
     NavTab("Solicitar", Icons.Filled.Add),
@@ -89,7 +92,8 @@ fun HomeScreen(
             // key por usuario: si otra persona inicia sesión, las pantallas parten limpias
             when {
                 isAdmin && selectedTab == 0 -> ReviewRoute()
-                isAdmin -> SpaceFormRoute()
+                isAdmin && selectedTab == 1 -> SpaceFormRoute()
+                isAdmin -> ScheduleFormRoute()
                 selectedTab == 0 -> ReservationFormRoute(viewModel = viewModel(key = "reservation-${user.id}"))
                 else -> MyReservationsRoute(viewModel = viewModel(key = "mine-${user.id}"))
             }

@@ -2,6 +2,7 @@ package com.example.reservaespacios.data
 
 import com.example.reservaespacios.model.Reservation
 import com.example.reservaespacios.model.ReservationStatus
+import com.example.reservaespacios.validation.ScheduleRules
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +12,9 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 /** Repositorio en memoria. Se pierde al cerrar la app. */
-class FakeReservationRepository : ReservationRepository {
+class FakeReservationRepository(
+    private val scheduleRepository: ScheduleRepository = FakeScheduleRepository()
+) : ReservationRepository {
 
     // Datos de ejemplo: las solicitudes 1 y 2 piden el Teatro mañana y SE SOLAPAN (11:00-12:00),
     // para poder probar la regla de no aprobar dos reservas en el mismo horario.
@@ -62,7 +65,21 @@ class FakeReservationRepository : ReservationRepository {
             return ReservationActionResult.Failure("Esta solicitud ya fue resuelta")
         }
 
-        // Regla de negocio: se verifica la disponibilidad AL APROBAR, no solo al solicitar.
+        // Regla 1 — prioridad académica: las clases del semestre siempre tienen preferencia.
+        val classConflict = ScheduleRules.findClassConflict(
+            spaceId = target.spaceId,
+            date = target.date,
+            start = target.startTime,
+            end = target.endTime,
+            classes = scheduleRepository.classes.value
+        )
+        if (classConflict != null) {
+            return ReservationActionResult.Failure(
+                "No se puede aprobar: choca con la clase ${ScheduleRules.describe(classConflict)}"
+            )
+        }
+
+        // Regla 2 — disponibilidad: se verifica AL APROBAR, no solo al solicitar.
         val conflict = current.firstOrNull {
             it.id != target.id &&
                     it.status == ReservationStatus.APPROVED &&

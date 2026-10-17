@@ -1,11 +1,14 @@
 package com.example.reservaespacios.ui.reservation
 
+import com.example.reservaespacios.model.AcademicClass
 import com.example.reservaespacios.model.Space
 
 enum class ReservationField { SPACE, ACTIVITY, ATTENDEES, DATE, START_TIME, END_TIME }
 
+/** Único objeto de estado de la pantalla: la UI solo lo lee. */
 data class ReservationFormUiState(
     val spaces: List<Space> = emptyList(),
+    val academicClasses: List<AcademicClass> = emptyList(),
     val space: Space? = null,
     val activity: String = "",
     val attendees: String = "",
@@ -27,6 +30,7 @@ data class ReservationFormUiState(
         field in touched && field !in errors
 }
 
+/** Todo lo que el usuario puede hacer en la pantalla. */
 sealed interface ReservationFormEvent {
     data class SpaceSelected(val space: Space) : ReservationFormEvent
     data class ActivityChanged(val value: String) : ReservationFormEvent

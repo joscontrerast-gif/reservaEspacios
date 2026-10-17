@@ -10,12 +10,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -38,13 +36,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reservaespacios.model.Space
+import com.example.reservaespacios.ui.components.DatePickerField
+import com.example.reservaespacios.ui.components.TimePickerField
 import com.example.reservaespacios.ui.components.ValidatedTextField
+import com.example.reservaespacios.util.DateTimeFormats
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 
 /** Conecta el ViewModel con la pantalla. */
 @Composable
@@ -71,6 +73,11 @@ fun ReservationFormScreen(
             }
         }
     }
+
+    // Al abrir el reloj de "Término", sugiere una hora después del inicio ya elegido.
+    val suggestedEnd = DateTimeFormats.parseTime(state.startTime)
+        ?.let { if (it.hour < 23) it.plusHours(1) else it }
+        ?: LocalTime.of(10, 0)
 
     Scaffold(
         modifier = modifier,
@@ -121,40 +128,35 @@ fun ReservationFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            ValidatedTextField(
+            DatePickerField(
                 value = state.date,
                 onValueChange = { onEvent(ReservationFormEvent.DateChanged(it)) },
                 label = "Fecha",
-                placeholder = "dd/MM/aaaa",
                 error = state.errorOf(ReservationField.DATE),
                 isValid = state.isFieldValid(ReservationField.DATE),
                 onBlur = { onEvent(ReservationFormEvent.FieldBlurred(ReservationField.DATE)) },
-                leadingIcon = Icons.Filled.DateRange,
+                minDate = LocalDate.now(),
                 modifier = Modifier.fillMaxWidth()
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                ValidatedTextField(
+                TimePickerField(
                     value = state.startTime,
                     onValueChange = { onEvent(ReservationFormEvent.StartTimeChanged(it)) },
                     label = "Inicio",
-                    placeholder = "HH:mm",
                     error = state.errorOf(ReservationField.START_TIME),
                     isValid = state.isFieldValid(ReservationField.START_TIME),
                     onBlur = { onEvent(ReservationFormEvent.FieldBlurred(ReservationField.START_TIME)) },
-                    leadingIcon = Icons.Filled.Schedule,
                     modifier = Modifier.weight(1f)
                 )
-                ValidatedTextField(
+                TimePickerField(
                     value = state.endTime,
                     onValueChange = { onEvent(ReservationFormEvent.EndTimeChanged(it)) },
                     label = "Término",
-                    placeholder = "HH:mm",
                     error = state.errorOf(ReservationField.END_TIME),
                     isValid = state.isFieldValid(ReservationField.END_TIME),
                     onBlur = { onEvent(ReservationFormEvent.FieldBlurred(ReservationField.END_TIME)) },
-                    leadingIcon = Icons.Filled.Schedule,
-                    imeAction = ImeAction.Done,
+                    defaultTime = suggestedEnd,
                     modifier = Modifier.weight(1f)
                 )
             }

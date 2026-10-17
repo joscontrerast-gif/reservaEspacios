@@ -92,6 +92,18 @@ class FakeReservationRepository : ReservationRepository {
         return ReservationActionResult.Success
     }
 
+    override suspend fun cancel(id: Int): ReservationActionResult {
+        delay(500)
+        val target = _reservations.value.firstOrNull { it.id == id }
+            ?: return ReservationActionResult.Failure("La solicitud ya no existe")
+        if (target.status != ReservationStatus.PENDING && target.status != ReservationStatus.APPROVED) {
+            return ReservationActionResult.Failure("Esta solicitud ya no se puede cancelar")
+        }
+        // Al pasar a CANCELLED deja de contar como "aprobada", así que el horario queda libre.
+        replace(id) { it.copy(status = ReservationStatus.CANCELLED) }
+        return ReservationActionResult.Success
+    }
+
     private fun replace(id: Int, transform: (Reservation) -> Reservation) {
         _reservations.update { list -> list.map { if (it.id == id) transform(it) else it } }
     }

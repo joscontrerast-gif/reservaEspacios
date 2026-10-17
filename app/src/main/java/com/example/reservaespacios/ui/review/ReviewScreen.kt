@@ -171,14 +171,18 @@ private fun PendingCard(
 
 @Composable
 private fun ResolvedCard(reservation: Reservation) {
-    val approved = reservation.status == ReservationStatus.APPROVED
+    val statusColor = when (reservation.status) {
+        ReservationStatus.APPROVED -> MaterialTheme.colorScheme.primary
+        ReservationStatus.REJECTED -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(reservation.spaceName, style = MaterialTheme.typography.titleMedium)
             Text(
                 reservation.status.label,
                 style = MaterialTheme.typography.labelLarge,
-                color = if (approved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                color = statusColor
             )
             Text(reservation.activity, style = MaterialTheme.typography.bodyMedium)
             Text(

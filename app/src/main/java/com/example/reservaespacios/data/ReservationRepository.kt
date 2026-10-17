@@ -33,4 +33,7 @@ interface ReservationRepository {
     suspend fun approve(id: Int): ReservationActionResult
 
     suspend fun reject(id: Int, reason: String): ReservationActionResult
+
+    /** Cancela una solicitud pendiente o una reserva aprobada. Si estaba aprobada, libera el horario. */
+    suspend fun cancel(id: Int): ReservationActionResult
 }

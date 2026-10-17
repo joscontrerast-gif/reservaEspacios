@@ -6,7 +6,8 @@ import java.time.LocalTime
 enum class ReservationStatus(val label: String) {
     PENDING("Pendiente"),
     APPROVED("Aprobada"),
-    REJECTED("Rechazada")
+    REJECTED("Rechazada"),
+    CANCELLED("Cancelada")
 }
 
 data class Reservation(

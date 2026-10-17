@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Icon
@@ -27,13 +29,26 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reservaespacios.model.User
 import com.example.reservaespacios.model.UserProfile
+import com.example.reservaespacios.ui.myreservations.MyReservationsRoute
 import com.example.reservaespacios.ui.reservation.ReservationFormRoute
 import com.example.reservaespacios.ui.review.ReviewRoute
 import com.example.reservaespacios.ui.spaces.SpaceFormRoute
+
+private data class NavTab(val label: String, val icon: ImageVector)
+
+private val adminTabs = listOf(
+    NavTab("Solicitudes", Icons.Filled.Notifications),
+    NavTab("Espacios", Icons.Filled.MeetingRoom)
+)
+private val userTabs = listOf(
+    NavTab("Solicitar", Icons.Filled.Add),
+    NavTab("Mis solicitudes", Icons.Filled.DateRange)
+)
 
 @Composable
 fun HomeScreen(
@@ -42,7 +57,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val isAdmin = user.profile == UserProfile.ADMIN
-    var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Solicitudes, 1 = Espacios
+    val tabs = if (isAdmin) adminTabs else userTabs
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
 
     Column(modifier = modifier.fillMaxSize()) {
         Row(
@@ -68,29 +84,24 @@ fun HomeScreen(
             modifier = Modifier
                 .weight(1f)
                 // La barra inferior ya maneja el espacio de la navegación del sistema
-                .then(if (isAdmin) Modifier.consumeWindowInsets(WindowInsets.navigationBars) else Modifier)
+                .consumeWindowInsets(WindowInsets.navigationBars)
         ) {
+            // key por usuario: si otra persona inicia sesión, las pantallas parten limpias
             when {
-                // key por usuario: si otra persona inicia sesión, el formulario parte limpio
-                !isAdmin -> ReservationFormRoute(viewModel = viewModel(key = "reservation-${user.id}"))
-                selectedTab == 0 -> ReviewRoute()
-                else -> SpaceFormRoute()
+                isAdmin && selectedTab == 0 -> ReviewRoute()
+                isAdmin -> SpaceFormRoute()
+                selectedTab == 0 -> ReservationFormRoute(viewModel = viewModel(key = "reservation-${user.id}"))
+                else -> MyReservationsRoute(viewModel = viewModel(key = "mine-${user.id}"))
             }
         }
 
-        if (isAdmin) {
-            NavigationBar {
+        NavigationBar {
+            tabs.forEachIndexed { index, tab ->
                 NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Filled.Notifications, contentDescription = null) },
-                    label = { Text("Solicitudes") }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Filled.MeetingRoom, contentDescription = null) },
-                    label = { Text("Espacios") }
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    icon = { Icon(tab.icon, contentDescription = null) },
+                    label = { Text(tab.label) }
                 )
             }
         }

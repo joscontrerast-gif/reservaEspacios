@@ -45,4 +45,27 @@ class FakeReservationRepositoryTest {
             assertTrue(repo.reject(1, "Motivo cualquiera largo") is ReservationActionResult.Failure)
         }
     }
+
+    @Test
+    fun cancelling_an_approved_reservation_frees_the_slot() {
+        runBlocking {
+            val repo = FakeReservationRepository()
+
+            repo.approve(1)
+            assertTrue(repo.approve(2) is ReservationActionResult.Failure) // ocupado
+
+            assertTrue(repo.cancel(1) is ReservationActionResult.Success)
+            assertEquals(ReservationStatus.CANCELLED, repo.reservations.value.first { it.id == 1 }.status)
+            assertTrue(repo.approve(2) is ReservationActionResult.Success) // ahora sí
+        }
+    }
+
+    @Test
+    fun a_rejected_request_cannot_be_cancelled() {
+        runBlocking {
+            val repo = FakeReservationRepository()
+            repo.reject(1, "Motivo suficientemente largo")
+            assertTrue(repo.cancel(1) is ReservationActionResult.Failure)
+        }
+    }
 }

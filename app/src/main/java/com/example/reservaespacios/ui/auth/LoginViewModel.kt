@@ -6,6 +6,7 @@ import com.example.reservaespacios.AppContainer
 import com.example.reservaespacios.data.AuthRepository
 import com.example.reservaespacios.data.AuthResult
 import com.example.reservaespacios.data.SessionStore
+import com.example.reservaespacios.data.local.AppPreferences
 import com.example.reservaespacios.validation.AuthValidators
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel(
     private val authRepository: AuthRepository = AppContainer.authRepository,
-    private val sessionStore: SessionStore = AppContainer.sessionStore
+    private val sessionStore: SessionStore = AppContainer.sessionStore,
+    private val preferences: AppPreferences = AppContainer.preferences
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(initialState())
@@ -41,6 +43,7 @@ class LoginViewModel(
             update { it.copy(isLoading = true, submitError = null) }
             when (val result = authRepository.login(state.email, state.password)) {
                 is AuthResult.Success -> {
+                    preferences.lastEmail = state.email // se precarga la próxima vez
                     sessionStore.signIn(result.user)
                     _uiState.value = initialState() // limpia el formulario (no deja la clave en memoria)
                 }
@@ -49,7 +52,7 @@ class LoginViewModel(
         }
     }
 
-    private fun initialState() = validate(LoginUiState())
+    private fun initialState() = validate(LoginUiState(email = preferences.lastEmail))
 
     private fun update(transform: (LoginUiState) -> LoginUiState) {
         _uiState.update { validate(transform(it)) }

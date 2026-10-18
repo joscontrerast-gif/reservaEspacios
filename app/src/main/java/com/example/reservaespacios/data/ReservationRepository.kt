@@ -23,7 +23,7 @@ sealed interface ReservationActionResult {
     data class Failure(val message: String) : ReservationActionResult
 }
 
-/** Contrato para las reservas. Hoy lo implementa FakeReservationRepository; mañana, Room. */
+/** Contrato para las reservas. Implementaciones: FakeReservationRepository (pruebas) y SqliteReservationRepository (app real). */
 interface ReservationRepository {
     val reservations: StateFlow<List<Reservation>>
 
@@ -36,4 +36,13 @@ interface ReservationRepository {
 
     /** Cancela una solicitud pendiente o una reserva aprobada. Si estaba aprobada, libera el horario. */
     suspend fun cancel(id: Int): ReservationActionResult
+
+    /** Reservas de este usuario cuyo cambio de estado (aprobada/rechazada) aún no se le notificó. */
+    suspend fun unnotifiedFor(userId: Int): List<Reservation> = emptyList()
+
+    /** Marca esas reservas como ya notificadas. */
+    suspend fun markNotified(ids: List<Int>) {}
+
+    /** Cantidad de solicitudes pendientes de revisión (para avisar al administrador). */
+    suspend fun pendingCount(): Int = 0
 }

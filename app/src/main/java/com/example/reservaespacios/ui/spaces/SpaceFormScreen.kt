@@ -1,5 +1,20 @@
 package com.example.reservaespacios.ui.spaces
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.example.reservaespacios.nativeres.PhotoStorage
+import com.example.reservaespacios.ui.components.LocalImage
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -65,6 +80,30 @@ fun SpaceFormScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    // Recurso nativo: cámara. La foto queda en un archivo interno y se guarda su ruta.
+    var pendingPhotoPath by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+        val path = pendingPhotoPath
+        pendingPhotoPath = null
+        if (saved && path != null) onEvent(SpaceFormEvent.PhotoTaken(path)) else PhotoStorage.delete(path)
+    }
+
+    fun launchCamera() {
+        val file = PhotoStorage.newPhotoFile(context)
+        pendingPhotoPath = file.absolutePath
+        takePicture.launch(PhotoStorage.uriFor(context, file))
+    }
+
+    val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            launchCamera()
+        } else {
+            scope.launch { snackbarHostState.showSnackbar("Sin permiso de cámara no se puede tomar la foto.") }
+        }
+    }
 
     LaunchedEffect(state.isSubmitted) {
         if (state.isSubmitted) {
@@ -137,6 +176,35 @@ fun SpaceFormScreen(
                 leadingIcon = Icons.Filled.LocationOn,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Text(
+                "Foto del espacio (opcional)",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            state.photoPath?.let { path ->
+                LocalImage(
+                    path = path,
+                    contentDescription = "Foto del espacio",
+                    modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp))
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = {
+                        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                                PackageManager.PERMISSION_GRANTED
+                        if (granted) launchCamera() else cameraPermission.launch(Manifest.permission.CAMERA)
+                    }
+                ) {
+                    Icon(Icons.Filled.CameraAlt, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(if (state.photoPath == null) "Tomar foto" else "Repetir foto")
+                }
+                if (state.photoPath != null) {
+                    OutlinedButton(onClick = { onEvent(SpaceFormEvent.PhotoRemoved) }) { Text("Quitar foto") }
+                }
+            }
 
             Text(
                 "Equipamiento (opcional)",
@@ -238,6 +306,13 @@ private fun statusColor(status: EquipmentStatus) = when (status) {
 private fun SpaceCard(space: Space) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            space.photoPath?.let { path ->
+                LocalImage(
+                    path = path,
+                    contentDescription = "Foto de ${space.name}",
+                    modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(8.dp))
+                )
+            }
             Text("${space.code} · ${space.name}", style = MaterialTheme.typography.titleSmall)
             Text(
                 "Capacidad: ${space.capacity} · Equipos: ${space.equipment.size}",

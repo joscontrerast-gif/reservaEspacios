@@ -9,7 +9,7 @@ sealed interface SpaceSaveResult {
     data class Failure(val message: String) : SpaceSaveResult
 }
 
-/** Contrato para los espacios. Hoy lo implementa FakeSpaceRepository; mañana, Room. */
+/** Contrato para los espacios. Implementaciones: FakeSpaceRepository (pruebas) y SqliteSpaceRepository (app real). */
 interface SpaceRepository {
     /** Lista observable: cualquier pantalla que la lea se actualiza sola cuando cambia. */
     val spaces: StateFlow<List<Space>>
@@ -19,6 +19,7 @@ interface SpaceRepository {
         name: String,
         capacity: Int,
         location: String,
-        equipment: List<Equipment>
+        equipment: List<Equipment>,
+        photoPath: String? = null
     ): SpaceSaveResult
 }

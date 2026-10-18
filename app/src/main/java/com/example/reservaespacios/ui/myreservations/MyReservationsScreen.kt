@@ -1,5 +1,10 @@
 package com.example.reservaespacios.ui.myreservations
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.platform.LocalContext
+import com.example.reservaespacios.nativeres.ReservationIntents
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,6 +60,16 @@ fun MyReservationsScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    // Recurso nativo: abre otra app del teléfono (Calendario, WhatsApp, correo...) mediante un Intent
+    fun launchIntent(intent: Intent) {
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            scope.launch { snackbarHostState.showSnackbar("No hay una app disponible para esta acción.") }
+        }
+    }
 
     LaunchedEffect(state.feedback) {
         state.feedback?.let { message ->
@@ -100,7 +115,9 @@ fun MyReservationsScreen(
                     reservation = reservation,
                     canCancel = ReservationRules.canCancel(reservation, today),
                     anyProcessing = state.processingId != null,
-                    onCancel = { onEvent(MyReservationsEvent.CancelClicked(reservation)) }
+                    onCancel = { onEvent(MyReservationsEvent.CancelClicked(reservation)) },
+                    onAddToCalendar = { launchIntent(ReservationIntents.addToCalendar(reservation)) },
+                    onShare = { launchIntent(ReservationIntents.share(reservation)) }
                 )
             }
         }
@@ -129,7 +146,9 @@ private fun ReservationCard(
     reservation: Reservation,
     canCancel: Boolean,
     anyProcessing: Boolean,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onAddToCalendar: () -> Unit,
+    onShare: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -151,6 +170,12 @@ private fun ReservationCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
                 )
+            }
+            if (reservation.status == ReservationStatus.APPROVED) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onAddToCalendar) { Text("Agregar al calendario") }
+                    TextButton(onClick = onShare) { Text("Compartir") }
+                }
             }
             if (canCancel) {
                 OutlinedButton(

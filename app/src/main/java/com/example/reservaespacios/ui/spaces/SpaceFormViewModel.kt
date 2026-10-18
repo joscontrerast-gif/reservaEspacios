@@ -7,6 +7,7 @@ import com.example.reservaespacios.data.SpaceRepository
 import com.example.reservaespacios.data.SpaceSaveResult
 import com.example.reservaespacios.model.Equipment
 import com.example.reservaespacios.model.EquipmentStatus
+import com.example.reservaespacios.nativeres.PhotoStorage
 import com.example.reservaespacios.validation.SpaceValidators
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +42,14 @@ class SpaceFormViewModel(
                 update { it.copy(equipmentName = event.value, equipmentError = null) }
             is SpaceFormEvent.EquipmentStatusSelected -> update { it.copy(equipmentStatus = event.status) }
             SpaceFormEvent.AddEquipment -> addEquipment()
+            is SpaceFormEvent.PhotoTaken -> {
+                PhotoStorage.delete(_uiState.value.photoPath) // reemplaza la foto anterior
+                update { it.copy(photoPath = event.path) }
+            }
+            SpaceFormEvent.PhotoRemoved -> {
+                PhotoStorage.delete(_uiState.value.photoPath)
+                update { it.copy(photoPath = null) }
+            }
             is SpaceFormEvent.RemoveEquipment ->
                 update { state -> state.copy(equipment = state.equipment.filterIndexed { i, _ -> i != event.index }) }
             SpaceFormEvent.Submit -> submit()
@@ -81,7 +90,8 @@ class SpaceFormViewModel(
                 name = state.name,
                 capacity = state.capacity.trim().toInt(), // ya validado
                 location = state.location,
-                equipment = state.equipment
+                equipment = state.equipment,
+                photoPath = state.photoPath
             )
             when (result) {
                 // Formulario limpio + aviso de éxito (la pantalla muestra el mensaje y baja la bandera)

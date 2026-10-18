@@ -9,5 +9,7 @@ data class Space(
     val capacity: Int,
     val code: String = "",
     val location: String = "",
-    val equipment: List<Equipment> = emptyList()
+    val equipment: List<Equipment> = emptyList(),
+    /** Ruta de la foto tomada con la cámara (archivo en el almacenamiento interno de la app). */
+    val photoPath: String? = null
 )

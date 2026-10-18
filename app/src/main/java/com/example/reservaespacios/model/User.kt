@@ -16,6 +16,6 @@ data class User(
     val id: Int,
     val name: String,
     val email: String,
-    val password: String, // TEMPORAL: al usar Room/backend se debe guardar un hash, no la contraseña
+    val password: String, // Solo lo usa FakeAuthRepository. En SQLite se guarda un hash y aquí llega vacío.
     val profile: UserProfile
 )

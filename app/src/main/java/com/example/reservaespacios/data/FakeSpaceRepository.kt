@@ -34,7 +34,8 @@ class FakeSpaceRepository : SpaceRepository {
         name: String,
         capacity: Int,
         location: String,
-        equipment: List<Equipment>
+        equipment: List<Equipment>,
+        photoPath: String?
     ): SpaceSaveResult {
         delay(600) // simula latencia
         val normalizedCode = code.trim().uppercase()
@@ -47,7 +48,8 @@ class FakeSpaceRepository : SpaceRepository {
             capacity = capacity,
             code = normalizedCode,
             location = location.trim(),
-            equipment = equipment
+            equipment = equipment,
+            photoPath = photoPath
         )
         _spaces.update { it + space }
         return SpaceSaveResult.Success(space)

@@ -16,6 +16,8 @@ data class SpaceFormUiState(
     val equipmentName: String = "",
     val equipmentStatus: EquipmentStatus = EquipmentStatus.AVAILABLE,
     val equipmentError: String? = null,
+    // Foto tomada con la cámara (ruta del archivo en el almacenamiento interno)
+    val photoPath: String? = null,
     // Estado general
     val registeredSpaces: List<Space> = emptyList(),
     val touched: Set<SpaceField> = emptySet(),
@@ -39,6 +41,8 @@ sealed interface SpaceFormEvent {
     data class EquipmentNameChanged(val value: String) : SpaceFormEvent
     data class EquipmentStatusSelected(val status: EquipmentStatus) : SpaceFormEvent
     data object AddEquipment : SpaceFormEvent
+    data class PhotoTaken(val path: String) : SpaceFormEvent
+    data object PhotoRemoved : SpaceFormEvent
     data class RemoveEquipment(val index: Int) : SpaceFormEvent
     data object Submit : SpaceFormEvent
     data object SubmissionHandled : SpaceFormEvent

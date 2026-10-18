@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reservaespacios.model.User
 import com.example.reservaespacios.model.UserProfile
+import com.example.reservaespacios.nativeres.NotificationsOnLogin
 import com.example.reservaespacios.ui.myreservations.MyReservationsRoute
 import com.example.reservaespacios.ui.reservation.ReservationFormRoute
 import com.example.reservaespacios.ui.review.ReviewRoute
@@ -59,6 +60,9 @@ fun HomeScreen(
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Recurso nativo: permiso + notificaciones locales según el usuario con sesión iniciada
+    NotificationsOnLogin(user)
+
     val isAdmin = user.profile == UserProfile.ADMIN
     val tabs = if (isAdmin) adminTabs else userTabs
     var selectedTab by rememberSaveable { mutableStateOf(0) }

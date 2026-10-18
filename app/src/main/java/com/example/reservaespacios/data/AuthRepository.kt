@@ -8,8 +8,11 @@ sealed interface AuthResult {
     data class Failure(val message: String) : AuthResult
 }
 
-/** Contrato que usan los ViewModels. Hoy lo implementa FakeAuthRepository; mañana, Room. */
+/** Contrato que usan los ViewModels. Implementaciones: FakeAuthRepository (pruebas) y SqliteAuthRepository (app real). */
 interface AuthRepository {
     suspend fun login(email: String, password: String): AuthResult
     suspend fun register(name: String, email: String, password: String, profile: UserProfile): AuthResult
+
+    /** Busca un usuario por id (para restaurar la sesión guardada). */
+    suspend fun findById(id: Int): User? = null
 }

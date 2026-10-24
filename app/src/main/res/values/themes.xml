@@ -2,4 +2,11 @@
 <resources>
 
     <style name="Theme.ReservaEspacios" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.ReservaEspacios.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.ReservaEspacios</item>
+    </style>
+
 </resources>

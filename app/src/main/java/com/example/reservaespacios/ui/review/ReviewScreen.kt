@@ -1,35 +1,49 @@
 package com.example.reservaespacios.ui.review
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,6 +57,14 @@ private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/M
 
 private fun Reservation.whenText(): String =
     "${date.format(dateFormatter)} · $startTime–$endTime · $attendees asistentes"
+
+/** Filtros del historial (las pendientes siempre se ven arriba, sin filtro). */
+private enum class ReviewFilter(val label: String, val status: ReservationStatus?) {
+    ALL("Todas", null),
+    APPROVED("Aprobadas", ReservationStatus.APPROVED),
+    REJECTED("Rechazadas", ReservationStatus.REJECTED),
+    CANCELLED("Canceladas", ReservationStatus.CANCELLED)
+}
 
 @Composable
 fun ReviewRoute(viewModel: ReviewViewModel = viewModel()) {
@@ -58,6 +80,7 @@ fun ReviewScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    var filter by rememberSaveable { mutableStateOf(ReviewFilter.ALL) }
 
     LaunchedEffect(state.feedback) {
         state.feedback?.let { message ->
@@ -66,11 +89,14 @@ fun ReviewScreen(
         }
     }
 
+    // Las pendientes siempre se ven completas; el filtro solo afecta al historial
     val pending = state.pending
-    val resolved = state.resolved
+    val history = if (filter == ReviewFilter.ALL) state.resolved
+    else state.resolved.filter { it.status == filter.status }
 
     Scaffold(
         modifier = modifier,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         LazyColumn(
@@ -80,18 +106,24 @@ fun ReviewScreen(
         ) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Solicitudes de reserva", style = MaterialTheme.typography.headlineSmall)
                     Text(
-                        "Una solicitud no bloquea el espacio hasta que sea aprobada.",
+                        "Solicitudes de reserva",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        "Aprueba o rechaza las solicitudes pendientes.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            item { SectionTitle("Pendientes (${pending.size})") }
+            // 1. Pendientes: lo primero que ve el administrador
+            item { SectionTitle("Pendientes (${pending.size})", extraTop = 8.dp) }
             if (pending.isEmpty()) {
-                item { EmptyText("No hay solicitudes pendientes.") }
+                item { EmptyText("Todo al día.") }
             }
             items(pending, key = { it.id }) { reservation ->
                 PendingCard(
@@ -99,15 +131,43 @@ fun ReviewScreen(
                     isProcessing = state.processingId == reservation.id,
                     anyProcessing = state.processingId != null,
                     onApprove = { onEvent(ReviewEvent.ApproveClicked(reservation.id)) },
-                    onReject = { onEvent(ReviewEvent.OpenReject(reservation)) }
+                    onReject = { onEvent(ReviewEvent.OpenReject(reservation)) },
+                    modifier = Modifier.animateItem()
                 )
             }
 
-            item { SectionTitle("Resueltas (${resolved.size})") }
-            if (resolved.isEmpty()) {
-                item { EmptyText("Aún no has resuelto ninguna solicitud.") }
+            // 2. Historial con filtros
+            item { SectionTitle("Historial (${state.resolved.size})") }
+            item {
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    ReviewFilter.entries.forEach { option ->
+                        FilterChip(
+                            selected = filter == option,
+                            onClick = { filter = option },
+                            label = { Text(option.label) },
+                            shape = RoundedCornerShape(50),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = Color.White
+                            )
+                        )
+                    }
+                }
             }
-            items(resolved, key = { it.id }) { reservation -> ResolvedCard(reservation) }
+            if (history.isEmpty()) {
+                item {
+                    EmptyText(
+                        if (filter == ReviewFilter.ALL) "Aún no hay historial."
+                        else "No hay solicitudes ${filter.label.lowercase()}."
+                    )
+                }
+            }
+            items(history, key = { it.id }) { reservation ->
+                ResolvedCard(reservation, modifier = Modifier.animateItem())
+            }
         }
     }
 
@@ -117,8 +177,14 @@ fun ReviewScreen(
 }
 
 @Composable
-private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+private fun SectionTitle(text: String, extraTop: Dp = 16.dp) {
+    Text(
+        text,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = extraTop)
+    )
 }
 
 @Composable
@@ -131,16 +197,46 @@ private fun EmptyText(text: String) {
 }
 
 @Composable
+private fun StatusChip(label: String, color: Color) {
+    Surface(shape = RoundedCornerShape(50), color = color.copy(alpha = 0.12f)) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = color,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
 private fun PendingCard(
     reservation: Reservation,
     isProcessing: Boolean,
     anyProcessing: Boolean,
     onApprove: () -> Unit,
-    onReject: () -> Unit
+    onReject: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    OutlinedCard(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
+        modifier = modifier.fillMaxWidth()
+    ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(reservation.spaceName, style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    reservation.spaceName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                StatusChip("Pendiente", Color(0xFFB7791F))
+            }
             Text(reservation.activity, style = MaterialTheme.typography.bodyMedium)
             Text(
                 "Solicitante: ${reservation.requesterName}",
@@ -153,11 +249,19 @@ private fun PendingCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {
-                OutlinedButton(onClick = onReject, enabled = !anyProcessing) { Text("Rechazar") }
-                Button(onClick = onApprove, enabled = !anyProcessing) {
+                OutlinedButton(
+                    onClick = onReject,
+                    enabled = !anyProcessing,
+                    shape = RoundedCornerShape(50)
+                ) { Text("Rechazar") }
+                Button(
+                    onClick = onApprove,
+                    enabled = !anyProcessing,
+                    shape = RoundedCornerShape(50)
+                ) {
                     if (isProcessing) {
                         CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else {
@@ -170,20 +274,31 @@ private fun PendingCard(
 }
 
 @Composable
-private fun ResolvedCard(reservation: Reservation) {
+private fun ResolvedCard(reservation: Reservation, modifier: Modifier = Modifier) {
     val statusColor = when (reservation.status) {
-        ReservationStatus.APPROVED -> MaterialTheme.colorScheme.primary
+        ReservationStatus.APPROVED -> Color(0xFF2E7D32)
         ReservationStatus.REJECTED -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-    Card(modifier = Modifier.fillMaxWidth()) {
+    OutlinedCard(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
+        modifier = modifier.fillMaxWidth()
+    ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(reservation.spaceName, style = MaterialTheme.typography.titleMedium)
-            Text(
-                reservation.status.label,
-                style = MaterialTheme.typography.labelLarge,
-                color = statusColor
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    reservation.spaceName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                StatusChip(reservation.status.label, statusColor)
+            }
             Text(reservation.activity, style = MaterialTheme.typography.bodyMedium)
             Text(
                 "Solicitante: ${reservation.requesterName}",

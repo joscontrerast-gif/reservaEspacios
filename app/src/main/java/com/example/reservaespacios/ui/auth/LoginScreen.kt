@@ -1,20 +1,11 @@
 package com.example.reservaespacios.ui.auth
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,11 +13,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.reservaespacios.R
+import com.example.reservaespacios.ui.components.AuthButton
+import com.example.reservaespacios.ui.components.AuthLayout
 import com.example.reservaespacios.ui.components.FormErrorMessage
 import com.example.reservaespacios.ui.components.PasswordTextField
 import com.example.reservaespacios.ui.components.ValidatedTextField
@@ -47,17 +43,15 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 48.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Reserva de espacios", style = MaterialTheme.typography.headlineMedium)
+    AuthLayout(subtitle = "RESERVA DE SALAS") {
         Text(
-            "Inicia sesión para continuar",
+            "Bienvenido/a",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = colorResource(R.color.therion_blue)
+        )
+        Text(
+            "Revisa qué salas están libres y reserva tu próximo bloque",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -90,23 +84,18 @@ fun LoginScreen(
 
         FormErrorMessage(state.submitError)
 
-        Button(
+        AuthButton(
+            text = "Iniciar sesión",
             onClick = { onEvent(LoginEvent.Submit) },
-            enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-            } else {
-                Text("Iniciar sesión")
-            }
-        }
+            isLoading = state.isLoading
+        )
 
         TextButton(
             onClick = onNavigateToRegister,
+            colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.therion_teal)),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("¿No tienes cuenta? Regístrate")
+            Text("¿Primera vez aquí? Crea tu cuenta", fontWeight = FontWeight.SemiBold)
         }
     }
 }

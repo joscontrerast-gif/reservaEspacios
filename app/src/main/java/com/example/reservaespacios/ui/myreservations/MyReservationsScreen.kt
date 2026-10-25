@@ -2,26 +2,28 @@ package com.example.reservaespacios.ui.myreservations
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import androidx.compose.foundation.layout.Row
-import androidx.compose.ui.platform.LocalContext
-import com.example.reservaespacios.nativeres.ReservationIntents
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,13 +31,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reservaespacios.model.Reservation
 import com.example.reservaespacios.model.ReservationStatus
+import com.example.reservaespacios.nativeres.ReservationIntents
 import com.example.reservaespacios.validation.ReservationRules
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -82,6 +88,7 @@ fun MyReservationsScreen(
 
     Scaffold(
         modifier = modifier,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         LazyColumn(
@@ -90,14 +97,12 @@ fun MyReservationsScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Mis solicitudes", style = MaterialTheme.typography.headlineSmall)
-                    Text(
-                        "Revisa el estado de tus solicitudes de espacios.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    "Mis solicitudes",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
 
             if (state.reservations.isEmpty()) {
@@ -117,7 +122,8 @@ fun MyReservationsScreen(
                     anyProcessing = state.processingId != null,
                     onCancel = { onEvent(MyReservationsEvent.CancelClicked(reservation)) },
                     onAddToCalendar = { launchIntent(ReservationIntents.addToCalendar(reservation)) },
-                    onShare = { launchIntent(ReservationIntents.share(reservation)) }
+                    onShare = { launchIntent(ReservationIntents.share(reservation)) },
+                    modifier = Modifier.animateItem()
                 )
             }
         }
@@ -135,8 +141,8 @@ fun MyReservationsScreen(
 
 @Composable
 private fun statusColor(status: ReservationStatus): Color = when (status) {
-    ReservationStatus.PENDING -> MaterialTheme.colorScheme.tertiary
-    ReservationStatus.APPROVED -> MaterialTheme.colorScheme.primary
+    ReservationStatus.PENDING -> Color(0xFFB7791F)
+    ReservationStatus.APPROVED -> Color(0xFF2E7D32)
     ReservationStatus.REJECTED -> MaterialTheme.colorScheme.error
     ReservationStatus.CANCELLED -> MaterialTheme.colorScheme.onSurfaceVariant
 }
@@ -148,16 +154,39 @@ private fun ReservationCard(
     anyProcessing: Boolean,
     onCancel: () -> Unit,
     onAddToCalendar: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    OutlinedCard(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
+        modifier = modifier.fillMaxWidth()
+    ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(reservation.spaceName, style = MaterialTheme.typography.titleMedium)
-            Text(
-                reservation.status.label,
-                style = MaterialTheme.typography.labelLarge,
-                color = statusColor(reservation.status)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    reservation.spaceName,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = statusColor(reservation.status).copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        reservation.status.label,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = statusColor(reservation.status),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
             Text(reservation.activity, style = MaterialTheme.typography.bodyMedium)
             Text(
                 reservation.whenText(),
@@ -172,7 +201,10 @@ private fun ReservationCard(
                 )
             }
             if (reservation.status == ReservationStatus.APPROVED) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     TextButton(onClick = onAddToCalendar) { Text("Agregar al calendario") }
                     TextButton(onClick = onShare) { Text("Compartir") }
                 }
@@ -181,7 +213,8 @@ private fun ReservationCard(
                 OutlinedButton(
                     onClick = onCancel,
                     enabled = !anyProcessing,
-                    modifier = Modifier.padding(top = 8.dp)
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.padding(top = 12.dp)
                 ) {
                     Text("Cancelar solicitud")
                 }

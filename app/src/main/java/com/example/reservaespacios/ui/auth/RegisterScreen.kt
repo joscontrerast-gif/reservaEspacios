@@ -1,22 +1,13 @@
 package com.example.reservaespacios.ui.auth
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Badge
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,12 +15,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.reservaespacios.R
 import com.example.reservaespacios.model.UserProfile
+import com.example.reservaespacios.ui.components.AuthButton
+import com.example.reservaespacios.ui.components.AuthLayout
 import com.example.reservaespacios.ui.components.FormErrorMessage
 import com.example.reservaespacios.ui.components.PasswordTextField
 import com.example.reservaespacios.ui.components.ValidatedDropdown
@@ -51,17 +47,15 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Crear cuenta", style = MaterialTheme.typography.headlineMedium)
+    AuthLayout(subtitle = "GESTIÓN DE ESPACIOS") {
         Text(
-            "Completa tus datos para solicitar espacios",
+            "Crea tu cuenta",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = colorResource(R.color.therion_blue)
+        )
+        Text(
+            "Solo toma un minuto. Después podrás reservar salas y ver tu agenda.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -70,7 +64,7 @@ fun RegisterScreen(
         ValidatedTextField(
             value = state.name,
             onValueChange = { onEvent(RegisterEvent.NameChanged(it)) },
-            label = "Nombre completo",
+            label = "Nombre y apellido",
             error = state.errorOf(RegisterField.NAME),
             isValid = state.isFieldValid(RegisterField.NAME),
             onBlur = { onEvent(RegisterEvent.FieldBlurred(RegisterField.NAME)) },
@@ -81,7 +75,7 @@ fun RegisterScreen(
         ValidatedTextField(
             value = state.email,
             onValueChange = { onEvent(RegisterEvent.EmailChanged(it)) },
-            label = "Correo",
+            label = "Correo electrónico",
             error = state.errorOf(RegisterField.EMAIL),
             isValid = state.isFieldValid(RegisterField.EMAIL),
             onBlur = { onEvent(RegisterEvent.FieldBlurred(RegisterField.EMAIL)) },
@@ -116,7 +110,7 @@ fun RegisterScreen(
         PasswordTextField(
             value = state.confirmPassword,
             onValueChange = { onEvent(RegisterEvent.ConfirmPasswordChanged(it)) },
-            label = "Repetir contraseña",
+            label = "Confirma tu contraseña",
             error = state.errorOf(RegisterField.CONFIRM_PASSWORD),
             isValid = state.isFieldValid(RegisterField.CONFIRM_PASSWORD),
             visible = state.passwordVisible,
@@ -128,23 +122,18 @@ fun RegisterScreen(
 
         FormErrorMessage(state.submitError)
 
-        Button(
+        AuthButton(
+            text = "Crear mi cuenta",
             onClick = { onEvent(RegisterEvent.Submit) },
-            enabled = !state.isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-            } else {
-                Text("Crear cuenta")
-            }
-        }
+            isLoading = state.isLoading
+        )
 
         TextButton(
             onClick = onNavigateToLogin,
+            colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.therion_teal)),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("¿Ya tienes cuenta? Inicia sesión")
+            Text("¿Ya tienes cuenta? Inicia sesión", fontWeight = FontWeight.SemiBold)
         }
     }
 }

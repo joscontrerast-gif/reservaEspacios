@@ -109,12 +109,12 @@ fun AdminHomeScreen(
                             .clip(shape)
                             .background(Brush.horizontalGradient(listOf(primary, secondary)))
                             .padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
                             "${pending.size} por aprobar",
                             color = Color.White,
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
@@ -122,7 +122,7 @@ fun AdminHomeScreen(
                             color = Color.White.copy(alpha = 0.9f),
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(8.dp))
                         Button(
                             onClick = onSeeRequests,
                             shape = RoundedCornerShape(50),
@@ -137,7 +137,7 @@ fun AdminHomeScreen(
                 }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 // 2. Para hoy
                 Text("Para hoy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = primary)
                 if (todayItems.isEmpty()) {
@@ -159,7 +159,13 @@ fun AdminHomeScreen(
                 }
 
                 // 3. Resumen
-                Text("Resumen", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = primary)
+                Text(
+                    "Resumen",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = primary,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     AdminSummaryCard("Pendientes", pending.size, Icons.Filled.Schedule, Ambar, Modifier.weight(1f))
                     AdminSummaryCard("Confirmadas", approved.size, Icons.Filled.CheckCircle, Verde, Modifier.weight(1f))
@@ -170,7 +176,8 @@ fun AdminHomeScreen(
                     "Próximas reservas (${upcomingItems.size})",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = primary
+                    color = primary,
+                    modifier = Modifier.padding(top = 16.dp)
                 )
                 if (upcomingItems.isEmpty()) {
                     Text(
@@ -202,14 +209,14 @@ private fun AdminSummaryCard(label: String, count: Int, icon: ImageVector, tint:
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
                 Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
                 "%02d".format(shown),
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -243,7 +250,7 @@ private fun ReservationQuickCard(
             ) {
                 Text(
                     reservation.spaceName,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
@@ -265,7 +272,7 @@ private fun ReservationQuickCard(
             )
             if (isPending) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
                     Button(onClick = onApprove, enabled = !anyProcessing, shape = RoundedCornerShape(50)) {

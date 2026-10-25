@@ -137,21 +137,17 @@ fun SpaceFormScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-            Text(
-                "Revisa los espacios existentes o agrega uno nuevo con su equipamiento.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
 
             Text(
                 "Espacios registrados (${state.registeredSpaces.size})",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp)
             )
             if (state.registeredSpaces.isEmpty()) {
                 Text(
-                    "Aún no hay espacios registrados.",
+                    "Aún no hay espacios.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -303,10 +299,10 @@ fun SpaceFormScreen(
 private fun SectionLabel(text: String) {
     Text(
         text,
-        style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 4.dp)
+        modifier = Modifier.padding(top = 16.dp)
     )
 }
 
@@ -322,8 +318,8 @@ private fun EquipmentRow(item: Equipment, onRemove: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(item.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(item.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                 Text(
                     item.status.label,
                     style = MaterialTheme.typography.bodySmall,
@@ -365,7 +361,7 @@ private fun SpaceCard(space: Space) {
             }
             Text(
                 "${space.code} · ${space.name}",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
             Text(

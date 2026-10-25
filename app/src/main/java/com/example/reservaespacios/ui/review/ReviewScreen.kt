@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -120,7 +121,7 @@ fun ReviewScreen(
             }
 
             // 1. Pendientes: lo primero que ve el administrador
-            item { SectionTitle("Pendientes (${pending.size})") }
+            item { SectionTitle("Pendientes (${pending.size})", extraTop = 8.dp) }
             if (pending.isEmpty()) {
                 item { EmptyText("Todo al día.") }
             }
@@ -176,13 +177,13 @@ fun ReviewScreen(
 }
 
 @Composable
-private fun SectionTitle(text: String) {
+private fun SectionTitle(text: String, extraTop: Dp = 16.dp) {
     Text(
         text,
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp)
+        modifier = Modifier.padding(top = extraTop)
     )
 }
 
@@ -222,7 +223,7 @@ private fun PendingCard(
         colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
         modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -230,7 +231,7 @@ private fun PendingCard(
             ) {
                 Text(
                     reservation.spaceName,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
@@ -248,7 +249,7 @@ private fun PendingCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {
                 OutlinedButton(
@@ -284,7 +285,7 @@ private fun ResolvedCard(reservation: Reservation, modifier: Modifier = Modifier
         colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
         modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -292,7 +293,7 @@ private fun ResolvedCard(reservation: Reservation, modifier: Modifier = Modifier
             ) {
                 Text(
                     reservation.spaceName,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )

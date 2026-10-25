@@ -47,7 +47,7 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    AuthLayout(subtitle = "GESTIÓN DE ESPACIOS") {
+    AuthLayout(subtitle = "RESERVA DE SALAS") {
         Text(
             "Crea tu cuenta",
             style = MaterialTheme.typography.headlineMedium,

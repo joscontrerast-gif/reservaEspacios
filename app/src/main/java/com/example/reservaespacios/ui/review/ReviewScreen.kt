@@ -112,7 +112,7 @@ fun ReviewScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        "Una solicitud no bloquea el espacio hasta que sea aprobada.",
+                        "Aprueba o rechaza las solicitudes pendientes.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

@@ -65,7 +65,7 @@ fun UserHomeScreen(
             ) {
                 Text("¿Necesitas un espacio?", color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text(
-                    "Solicita una sala para una clase, reunión o actividad.",
+                    "Reserva una sala.",
                     color = Color.White.copy(alpha = 0.9f),
                     style = MaterialTheme.typography.bodyMedium
                 )

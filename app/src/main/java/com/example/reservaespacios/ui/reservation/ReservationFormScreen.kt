@@ -113,7 +113,7 @@ fun ReservationFormScreen(
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        "Tu solicitud quedará pendiente hasta que un administrador la apruebe.",
+                        "Un administrador la revisará y te avisará.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )

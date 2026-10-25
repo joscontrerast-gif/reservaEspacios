@@ -5,6 +5,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -67,12 +69,14 @@ import com.example.reservaespacios.ui.myreservations.MyReservationsRoute
 import com.example.reservaespacios.ui.myreservations.MyReservationsViewModel
 import com.example.reservaespacios.ui.reservation.ReservationFormRoute
 import com.example.reservaespacios.ui.review.ReviewRoute
+import com.example.reservaespacios.ui.review.ReviewViewModel
 import com.example.reservaespacios.ui.schedule.ScheduleFormRoute
 import com.example.reservaespacios.ui.spaces.SpaceFormRoute
 
 private data class NavTab(val label: String, val icon: ImageVector)
 
 private val adminTabs = listOf(
+    NavTab("Inicio", Icons.Filled.Home),
     NavTab("Solicitudes", Icons.Filled.Notifications),
     NavTab("Espacios", Icons.Filled.MeetingRoom),
     NavTab("Horarios", Icons.Filled.Schedule)
@@ -179,12 +183,25 @@ fun HomeScreen(
         ) {
             AnimatedContent(
                 targetState = selectedTab,
-                transitionSpec = { fadeIn(tween(250)) togetherWith fadeOut(tween(150)) },
+                transitionSpec = {
+                    val dir = if (targetState > initialState) 1 else -1
+                    (fadeIn(tween(220)) + slideInHorizontally(tween(260)) { it / 12 * dir }) togetherWith
+                            (fadeOut(tween(120)) + slideOutHorizontally(tween(200)) { -it / 12 * dir })
+                },
                 label = "tabs"
             ) { tab ->
                 when {
-                    isAdmin && tab == 0 -> ReviewRoute()
-                    isAdmin && tab == 1 -> SpaceFormRoute()
+                    isAdmin && tab == 0 -> {
+                        val review = viewModel<ReviewViewModel>(key = "review")
+                        val reviewState by review.uiState.collectAsStateWithLifecycle()
+                        AdminHomeScreen(
+                            state = reviewState,
+                            onEvent = review::onEvent,
+                            onSeeRequests = { selectedTab = 1 }
+                        )
+                    }
+                    isAdmin && tab == 1 -> ReviewRoute(viewModel = viewModel(key = "review"))
+                    isAdmin && tab == 2 -> SpaceFormRoute()
                     isAdmin -> ScheduleFormRoute()
                     tab == 0 -> {
                         val mine = viewModel<MyReservationsViewModel>(key = "mine-${user.id}")

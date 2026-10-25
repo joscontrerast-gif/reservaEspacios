@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -55,8 +56,10 @@ import com.example.reservaespacios.ui.components.FormErrorMessage
 import com.example.reservaespacios.ui.components.TimePickerField
 import com.example.reservaespacios.ui.components.ValidatedDropdown
 import com.example.reservaespacios.ui.components.ValidatedTextField
+import com.example.reservaespacios.util.DateTimeFormats
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
+import java.time.Duration
 
 private val weekDays: List<DayOfWeek> = DayOfWeek.values().toList()
 
@@ -211,24 +214,43 @@ fun ScheduleFormScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    TimePickerField(
-                        value = state.startTime,
-                        onValueChange = { onEvent(ScheduleFormEvent.StartTimeChanged(it)) },
-                        label = "Inicio",
-                        error = state.errorOf(ScheduleField.START_TIME),
-                        isValid = state.isFieldValid(ScheduleField.START_TIME),
-                        onBlur = { onEvent(ScheduleFormEvent.FieldBlurred(ScheduleField.START_TIME)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    TimePickerField(
-                        value = state.endTime,
-                        onValueChange = { onEvent(ScheduleFormEvent.EndTimeChanged(it)) },
-                        label = "Término",
-                        error = state.errorOf(ScheduleField.END_TIME),
-                        isValid = state.isFieldValid(ScheduleField.END_TIME),
-                        onBlur = { onEvent(ScheduleFormEvent.FieldBlurred(ScheduleField.END_TIME)) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    Column {
+                        TimePickerField(
+                            value = state.startTime,
+                            onValueChange = { onEvent(ScheduleFormEvent.StartTimeChanged(it)) },
+                            label = "Inicio",
+                            error = state.errorOf(ScheduleField.START_TIME),
+                            isValid = state.isFieldValid(ScheduleField.START_TIME),
+                            onBlur = { onEvent(ScheduleFormEvent.FieldBlurred(ScheduleField.START_TIME)) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        TimePickerField(
+                            value = state.endTime,
+                            onValueChange = { onEvent(ScheduleFormEvent.EndTimeChanged(it)) },
+                            label = "Término",
+                            error = state.errorOf(ScheduleField.END_TIME),
+                            isValid = state.isFieldValid(ScheduleField.END_TIME),
+                            onBlur = { onEvent(ScheduleFormEvent.FieldBlurred(ScheduleField.END_TIME)) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        val start = DateTimeFormats.parseTime(state.startTime)
+                        val end = DateTimeFormats.parseTime(state.endTime)
+                        val minutes = if (start != null && end != null && end.isAfter(start)) {
+                            Duration.between(start, end).toMinutes()
+                        } else null
+
+                        AnimatedVisibility(visible = minutes != null) {
+                            Text(
+                                "Duración: ${(minutes ?: 0) / 60} h ${(minutes ?: 0) % 60} min",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(top = 12.dp)
+                            )
+                        }
+                    }
 
                     FormErrorMessage(state.submitError)
 

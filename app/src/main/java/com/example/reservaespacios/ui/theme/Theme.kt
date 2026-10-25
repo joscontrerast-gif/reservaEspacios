@@ -5,8 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.LocalAutofillHighlightColor
 
 private val Azul = Color(0xFF013A58)
 private val Turquesa = Color(0xFF028E98)
@@ -43,7 +45,10 @@ fun ReservaEspaciosTheme(content: @Composable () -> Unit) {
             extraSmall = RoundedCornerShape(14.dp),
             small = RoundedCornerShape(16.dp),
             medium = RoundedCornerShape(20.dp)
-        ),
-        content = content
-    )
+        )
+    ) {
+        CompositionLocalProvider(LocalAutofillHighlightColor provides Color.Transparent) {
+            content()
+        }
+    }
 }

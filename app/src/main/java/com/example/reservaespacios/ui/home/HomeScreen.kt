@@ -140,7 +140,7 @@ fun HomeScreen(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "¡Hola, ${user.name}!",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     maxLines = 1,
@@ -148,7 +148,7 @@ fun HomeScreen(
                 )
                 Text(
                     user.profile.label,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.8f)
                 )
             }

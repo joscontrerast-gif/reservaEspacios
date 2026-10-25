@@ -51,7 +51,7 @@ fun UserHomeScreen(
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Column(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             val shape = RoundedCornerShape(24.dp)
             Column(
@@ -61,15 +61,15 @@ fun UserHomeScreen(
                     .clip(shape)
                     .background(Brush.horizontalGradient(listOf(primary, secondary)))
                     .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text("¿Necesitas un espacio?", color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text("¿Necesitas un espacio?", color = Color.White, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
-                    "Reserva una sala.",
+                    "Reserva una sala en pocos pasos.",
                     color = Color.White.copy(alpha = 0.9f),
                     style = MaterialTheme.typography.bodyMedium
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
                 Button(
                     onClick = onNewRequest,
                     shape = RoundedCornerShape(50),
@@ -82,14 +82,20 @@ fun UserHomeScreen(
                 }
             }
 
-            Text("Resumen de solicitudes", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = primary)
+            Text(
+                "Resumen de solicitudes",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = primary,
+                modifier = Modifier.padding(top = 16.dp)
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 SummaryCard("Pendientes", pending, Icons.Filled.Schedule, Ambar, Modifier.weight(1f))
                 SummaryCard("Aprobadas", approved, Icons.Filled.CheckCircle, Verde, Modifier.weight(1f))
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -121,14 +127,14 @@ private fun SummaryCard(label: String, count: Int, icon: ImageVector, tint: Colo
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.outlinedCardColors(containerColor = Color.White)
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
                 Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
                 "%02d".format(shown),
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -150,11 +156,11 @@ private fun ActivityCard(reservation: Reservation, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Icon(Icons.Filled.DateRange, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Column(Modifier.weight(1f)) {
-                Text(reservation.spaceName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(reservation.spaceName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Text(
                     "${statusText(reservation.status)} · ${reservation.date.format(fechaFormato)}",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,7 +46,6 @@ import com.example.reservaespacios.validation.ReservationRules
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import androidx.compose.foundation.layout.WindowInsets
 
 private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
@@ -97,14 +97,12 @@ fun MyReservationsScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        "Mis solicitudes",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                Text(
+                    "Mis solicitudes",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
 
             if (state.reservations.isEmpty()) {
@@ -164,7 +162,7 @@ private fun ReservationCard(
         colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
         modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -172,7 +170,7 @@ private fun ReservationCard(
             ) {
                 Text(
                     reservation.spaceName,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
@@ -203,7 +201,10 @@ private fun ReservationCard(
                 )
             }
             if (reservation.status == ReservationStatus.APPROVED) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     TextButton(onClick = onAddToCalendar) { Text("Agregar al calendario") }
                     TextButton(onClick = onShare) { Text("Compartir") }
                 }
@@ -212,7 +213,8 @@ private fun ReservationCard(
                 OutlinedButton(
                     onClick = onCancel,
                     enabled = !anyProcessing,
-                    modifier = Modifier.padding(top = 8.dp)
+                    shape = RoundedCornerShape(50),
+                    modifier = Modifier.padding(top = 12.dp)
                 ) {
                     Text("Cancelar solicitud")
                 }

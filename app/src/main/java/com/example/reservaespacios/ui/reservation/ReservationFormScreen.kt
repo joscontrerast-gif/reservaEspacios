@@ -4,7 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -52,7 +55,6 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
-import androidx.compose.foundation.layout.WindowInsets
 
 /** Conecta el ViewModel con la pantalla. */
 @Composable
@@ -161,14 +163,7 @@ fun ReservationFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Text(
-                "Detalles de tiempo",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column {
                 TimePickerField(
                     value = state.startTime,
                     onValueChange = { onEvent(ReservationFormEvent.StartTimeChanged(it)) },
@@ -178,6 +173,7 @@ fun ReservationFormScreen(
                     onBlur = { onEvent(ReservationFormEvent.FieldBlurred(ReservationField.START_TIME)) },
                     modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(Modifier.height(12.dp))
                 TimePickerField(
                     value = state.endTime,
                     onValueChange = { onEvent(ReservationFormEvent.EndTimeChanged(it)) },
@@ -200,7 +196,8 @@ fun ReservationFormScreen(
                         "Duración: ${(minutes ?: 0) / 60} h ${(minutes ?: 0) % 60} min",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 12.dp)
                     )
                 }
             }

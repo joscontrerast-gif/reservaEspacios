@@ -1,0 +1,13 @@
+{
+  "name": "reservations-service",
+  "version": "1.0.0",
+  "description": "Microservicio de Solicitudes y Reservas - ReservaEspacios",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

@@ -5,6 +5,8 @@
     <!-- Recursos nativos que usa la app -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- La cámara es opcional: la app funciona sin ella (en emuladores o tablets sin cámara) -->
     <uses-feature
         android:name="android.hardware.camera"
@@ -12,6 +14,7 @@
 
     <application
         android:name=".ReservaApp"
+        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"

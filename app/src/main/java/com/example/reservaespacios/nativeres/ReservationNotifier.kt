@@ -17,8 +17,8 @@ import com.example.reservaespacios.R
 import com.example.reservaespacios.data.ReservationRepository
 import com.example.reservaespacios.model.Reservation
 import com.example.reservaespacios.model.ReservationStatus
+import com.example.reservaespacios.model.RolePolicy
 import com.example.reservaespacios.model.User
-import com.example.reservaespacios.model.UserProfile
 
 /**
  * Recurso nativo: notificaciones locales (NotificationManager + permiso POST_NOTIFICATIONS en Android 13+).
@@ -48,7 +48,7 @@ class ReservationNotifier(private val context: Context) {
     /** Revisa en la base de datos qué hay que avisarle a este usuario y lo notifica. */
     suspend fun notifyOnLogin(user: User, repository: ReservationRepository) {
         if (!hasPermission()) return
-        if (user.profile == UserProfile.ADMIN) {
+        if (RolePolicy.of(user.profile).canManage) {
             val pending = repository.pendingCount()
             if (pending > 0) showPendingSummary(pending)
         } else {

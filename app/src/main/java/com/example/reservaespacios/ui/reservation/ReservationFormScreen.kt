@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.DropdownMenuItem
@@ -47,7 +48,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reservaespacios.model.Space
 import com.example.reservaespacios.ui.components.AuthButton
+import com.example.reservaespacios.model.RolePolicy
 import com.example.reservaespacios.ui.components.DatePickerField
+import com.example.reservaespacios.ui.components.FormErrorMessage
 import com.example.reservaespacios.ui.components.TimePickerField
 import com.example.reservaespacios.ui.components.ValidatedTextField
 import com.example.reservaespacios.util.DateTimeFormats
@@ -122,6 +125,8 @@ fun ReservationFormScreen(
                 }
             }
 
+            state.policy?.let { PolicyCard(it, state.activeRequests) }
+
             SpaceDropdown(
                 spaces = state.spaces,
                 selected = state.space,
@@ -159,7 +164,8 @@ fun ReservationFormScreen(
                 error = state.errorOf(ReservationField.DATE),
                 isValid = state.isFieldValid(ReservationField.DATE),
                 onBlur = { onEvent(ReservationFormEvent.FieldBlurred(ReservationField.DATE)) },
-                minDate = LocalDate.now(),
+                minDate = LocalDate.now().plusDays((state.policy?.minAdvanceDays ?: 0).toLong()),
+                maxDate = state.policy?.maxAdvanceDays?.let { LocalDate.now().plusDays(it.toLong()) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -200,6 +206,10 @@ fun ReservationFormScreen(
                         modifier = Modifier.padding(top = 12.dp)
                     )
                 }
+            }
+
+            AnimatedVisibility(visible = state.limitError != null) {
+                FormErrorMessage(state.limitError)
             }
 
             AuthButton(
@@ -256,6 +266,52 @@ private fun SpaceDropdown(
                         onSelected(space)
                         expanded = false
                     }
+                )
+            }
+        }
+    }
+}
+
+/** Muestra qué permite el perfil del usuario y cuántas solicitudes activas lleva. */
+@Composable
+private fun PolicyCard(policy: RolePolicy, activeRequests: Int) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    Icons.Filled.VerifiedUser,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    "Tu perfil: ${policy.profile.label}",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            policy.summary().forEach { line ->
+                Text(
+                    "• $line",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+            policy.maxActiveRequests?.let { max ->
+                Text(
+                    "Solicitudes activas: $activeRequests de $max",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
         }

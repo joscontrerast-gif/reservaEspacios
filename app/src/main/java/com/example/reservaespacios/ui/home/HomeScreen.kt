@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MeetingRoom
@@ -62,9 +63,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.reservaespacios.model.RolePolicy
 import com.example.reservaespacios.model.User
-import com.example.reservaespacios.model.UserProfile
 import com.example.reservaespacios.nativeres.NotificationsOnLogin
+import com.example.reservaespacios.ui.agenda.AgendaRoute
 import com.example.reservaespacios.ui.myreservations.MyReservationsRoute
 import com.example.reservaespacios.ui.myreservations.MyReservationsViewModel
 import com.example.reservaespacios.ui.reservation.ReservationFormRoute
@@ -86,6 +88,8 @@ private val userTabs = listOf(
     NavTab("Solicitar", Icons.Filled.Add),
     NavTab("Mis solicitudes", Icons.Filled.DateRange)
 )
+// Pestaña extra solo para los perfiles con acceso a la agenda general (ver RolePolicy.canViewAgenda)
+private val agendaTab = NavTab("Agenda", Icons.Filled.CalendarMonth)
 
 @Composable
 fun HomeScreen(
@@ -95,8 +99,14 @@ fun HomeScreen(
 ) {
     NotificationsOnLogin(user)
 
-    val isAdmin = user.profile == UserProfile.ADMIN
-    val tabs = if (isAdmin) adminTabs else userTabs
+    // Los privilegios salen de la política del perfil, no de preguntar "¿es admin? ¿es docente?"
+    val policy = remember(user.profile) { RolePolicy.of(user.profile) }
+    val isAdmin = policy.canManage
+    val tabs = when {
+        isAdmin -> adminTabs
+        policy.canViewAgenda -> userTabs + agendaTab
+        else -> userTabs
+    }
     var selectedTab by rememberSaveable { mutableStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
 
@@ -215,7 +225,8 @@ fun HomeScreen(
                         )
                     }
                     tab == 1 -> ReservationFormRoute(viewModel = viewModel(key = "reservation-${user.id}"))
-                    else -> MyReservationsRoute(viewModel = viewModel(key = "mine-${user.id}"))
+                    tab == 2 -> MyReservationsRoute(viewModel = viewModel(key = "mine-${user.id}"))
+                    else -> AgendaRoute()
                 }
             }
         }

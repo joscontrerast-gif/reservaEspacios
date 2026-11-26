@@ -98,6 +98,8 @@ class AppDatabaseHelper(context: Context) :
         }
         user("Coordinador de espacios", "admin@instituto.cl", "Admin1234", "ADMIN")
         user("Docente de prueba", "docente@instituto.cl", "Docente123", "TEACHER")
+        user("Estudiante Demo", "estudiante@instituto.cl", "Estudiante123", "STUDENT")
+        user("Ana Pérez", "ana@instituto.cl", "Admin1234", "STAFF")
 
         fun space(code: String, name: String, capacity: Int, location: String = ""): Long =
             db.insert(
@@ -146,7 +148,7 @@ class AppDatabaseHelper(context: Context) :
             )
         }
         reservation(2, "Docente de prueba", "Ensayo de obra", 30, "10:00", "12:00")
-        reservation(90, "Ana Pérez (Administrativo)", "Charla de bienvenida", 80, "11:00", "13:00")
+        reservation(4, "Ana Pérez (Administrativo)", "Charla de bienvenida", 80, "11:00", "13:00")
     }
 
     companion object {

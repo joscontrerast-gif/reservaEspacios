@@ -8,8 +8,12 @@ import com.example.reservaespacios.data.ReservationRepository
 import com.example.reservaespacios.data.ScheduleRepository
 import com.example.reservaespacios.data.SessionStore
 import com.example.reservaespacios.data.SpaceRepository
+import com.example.reservaespacios.model.Reservation
+import com.example.reservaespacios.model.RolePolicy
+import com.example.reservaespacios.model.User
 import com.example.reservaespacios.ui.reservation.ReservationField.*
 import com.example.reservaespacios.validation.ReservationValidators
+import com.example.reservaespacios.validation.RolePolicyRules
 import com.example.reservaespacios.validation.ScheduleRules
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +48,12 @@ class ReservationFormViewModel(
         viewModelScope.launch {
             scheduleRepository.classes.collect { classes ->
                 update { it.copy(academicClasses = classes) }
+            }
+        }
+        // Cupo del perfil: se recalcula cada vez que cambian las reservas (enviar, aprobar, cancelar...).
+        viewModelScope.launch {
+            reservationRepository.reservations.collect { all ->
+                update { it.copy(activeRequests = activeFor(sessionStore.currentUser.value, all)) }
             }
         }
     }
@@ -97,12 +107,20 @@ class ReservationFormViewModel(
         }
     }
 
-    private fun initialState() = validate(
-        ReservationFormUiState(
-            spaces = spaceRepository.spaces.value,
-            academicClasses = scheduleRepository.classes.value
+    private fun initialState(): ReservationFormUiState {
+        val user = sessionStore.currentUser.value
+        return validate(
+            ReservationFormUiState(
+                spaces = spaceRepository.spaces.value,
+                academicClasses = scheduleRepository.classes.value,
+                policy = user?.let { RolePolicy.of(it.profile) },
+                activeRequests = activeFor(user, reservationRepository.reservations.value)
+            )
         )
-    )
+    }
+
+    private fun activeFor(user: User?, reservations: List<Reservation>): Int =
+        if (user == null) 0 else RolePolicyRules.countActive(reservations, user.id, LocalDate.now())
 
     /** Aplica el cambio y recalcula los errores de TODOS los campos (hay reglas cruzadas). */
     private fun update(transform: (ReservationFormUiState) -> ReservationFormUiState) {
@@ -121,15 +139,26 @@ class ReservationFormViewModel(
                     ?.let { "Choca con la clase ${ScheduleRules.describe(it)}" }
             } else null
 
+        // Privilegios del perfil: anticipación y duración (solo se evalúan si el valor ya es válido).
+        val today = LocalDate.now()
+        val policyDateError =
+            if (date != null && !date.isBefore(today)) RolePolicyRules.validateDate(state.policy, date, today) else null
+        val policyDurationError =
+            if (start != null && end != null && end.isAfter(start)) RolePolicyRules.validateDuration(state.policy, start, end) else null
+
         val errors = buildMap {
             ReservationValidators.validateSpace(state.space)?.let { put(SPACE, it) }
             ReservationValidators.validateActivity(state.activity)?.let { put(ACTIVITY, it) }
             ReservationValidators.validateAttendees(state.attendees, state.space)?.let { put(ATTENDEES, it) }
-            ReservationValidators.validateDate(state.date, LocalDate.now())?.let { put(DATE, it) }
+            (ReservationValidators.validateDate(state.date, today) ?: policyDateError)
+                ?.let { put(DATE, it) }
             ReservationValidators.validateStartTime(state.startTime)?.let { put(START_TIME, it) }
-            (ReservationValidators.validateEndTime(state.startTime, state.endTime) ?: classConflict)
+            (ReservationValidators.validateEndTime(state.startTime, state.endTime) ?: policyDurationError ?: classConflict)
                 ?.let { put(END_TIME, it) }
         }
-        return state.copy(errors = errors)
+        return state.copy(
+            errors = errors,
+            limitError = RolePolicyRules.validateActiveRequests(state.policy, state.activeRequests)
+        )
     }
 }

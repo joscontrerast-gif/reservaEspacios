@@ -40,7 +40,18 @@ Hoy la coordinación de estos espacios depende de correos, mensajes y de una sol
 
 ## 2. ¿Qué hace la app?
 
-La app tiene **cuatro perfiles**. Estudiante, Docente y Administrativo se eligen al registrarse y tienen las mismas funciones; el **Administrador** no se puede elegir al registrarse (lo crea la institución).
+La app tiene **cuatro perfiles con privilegios diferenciados**. Estudiante, Docente y Administrativo se eligen al registrarse; el **Administrador** no se puede elegir al registrarse (lo crea la institución).
+
+| Privilegio | Estudiante | Docente | Administrativo | Administrador |
+|---|---|---|---|---|
+| Solicitudes activas a la vez (pendientes + aprobadas futuras) | 2 | 5 | 10 | Sin límite |
+| Anticipación mínima | 1 día | Mismo día | Mismo día | — |
+| Anticipación máxima | 14 días | 60 días | 90 días | — |
+| Duración máxima de una reserva | 2 h | 4 h | 8 h | — |
+| Ver la **Agenda general** (reservas aprobadas de todos los espacios) | ❌ | ❌ | ✅ | ✅ |
+| Aprobar/rechazar solicitudes y administrar espacios y horarios | ❌ | ❌ | ❌ | ✅ |
+
+Los límites se muestran en el formulario de solicitud («Tu perfil»), el calendario deshabilita las fechas fuera del rango permitido y cada incumplimiento se informa en su campo.
 
 ### Para quien solicita (Estudiante, Docente, Administrativo)
 
@@ -48,6 +59,7 @@ La app tiene **cuatro perfiles**. Estudiante, Docente y Administrativo se eligen
 |---|---|
 | **Solicitar** | Pedir un espacio indicando actividad, cantidad de asistentes, fecha y hora de inicio y término (con calendario y reloj). Valida capacidad, fechas pasadas, horarios y choques con clases. |
 | **Mis solicitudes** | Ver el estado de cada solicitud (pendiente, aprobada, rechazada o cancelada) y el motivo si fue rechazada. Cancelar con confirmación. En las aprobadas: **agregar al calendario del teléfono** y **compartir** el detalle. |
+| **Agenda** *(solo Administrativo)* | Ver, agrupadas por día, las reservas aprobadas de todos los espacios (solo lectura). |
 
 ### Para el Administrador
 
@@ -114,7 +126,7 @@ Pantalla (Compose)  ──evento──▶  ViewModel  ──▶  Repositorio (in
 ```
 app/src/main/java/com/example/reservaespacios/
 ├── ReservaApp.kt, MainActivity.kt, AppContainer.kt
-├── model/            Modelos: User, Space, Equipment, Reservation, AcademicClass
+├── model/            Modelos: User, Space, Equipment, Reservation, AcademicClass y RolePolicy (privilegios por perfil)
 ├── data/             Interfaces de repositorio, SessionStore y versiones Fake* (para tests)
 │   └── local/        SQLite: AppDatabaseHelper, repositorios Sqlite*, AppPreferences, PasswordHasher
 ├── validation/       Validadores y reglas de negocio (funciones puras)
@@ -127,6 +139,7 @@ app/src/main/java/com/example/reservaespacios/
     ├── reservation/  Formulario de solicitud
     ├── myreservations/  Mis solicitudes
     ├── review/       Aprobar y rechazar (administrador)
+    ├── agenda/       Agenda general (administrativo)
     ├── spaces/       Registro de espacios y equipamiento (administrador)
     ├── schedule/     Planificación académica (administrador)
     └── components/   Campos reutilizables con validación visual, selectores, imagen local
@@ -198,6 +211,8 @@ También por terminal:
 |---|---|---|
 | **Administrador** | `admin@instituto.cl` | `Admin1234` |
 | **Docente** | `docente@instituto.cl` | `Docente123` |
+| **Estudiante** | `estudiante@instituto.cl` | `Estudiante123` |
+| **Administrativo** | `ana@instituto.cl` | `Admin1234` |
 
 También puedes **registrar** cuentas nuevas de Estudiante, Docente o Administrativo desde la pantalla de registro (la contraseña debe tener al menos 8 caracteres, con letras y números).
 
@@ -216,6 +231,7 @@ También puedes **registrar** cuentas nuevas de Estudiante, Docente o Administra
 6. Cierra sesión y entra como **docente**: recibirás la notificación de tus solicitudes resueltas. En *Mis solicitudes* verás el estado, el motivo del rechazo, y en las aprobadas podrás **agregar al calendario** y **compartir**.
 7. En *Solicitar*, intenta reservar el Teatro en el horario de la clase del paso 4: el campo «Término» avisa que choca con la clase.
 8. Cierra y vuelve a abrir la app: la **sesión y los datos se conservan**.
+9. **Roles:** entra como **estudiante** y envía 2 solicitudes: la tercera queda bloqueada por el cupo; prueba también pedir para hoy o por más de 2 h (el formulario lo rechaza). Entra como **docente** (mismo día y hasta 4 h permitidos) y como **administrativo** (aparece la pestaña **Agenda**). Para ver las cuentas nuevas en una instalación existente, usa *Borrar datos*.
 
 ---
 
@@ -257,7 +273,7 @@ Estas reglas quedaron abiertas en la reunión con el cliente; mientras tanto, la
 
 - **Cancelación:** se puede cancelar una solicitud pendiente o una reserva aprobada que aún no ocurrió. El plazo mínimo y quién puede hacerlo están por definir.
 - **Clases del semestre:** se repiten todas las semanas, sin fecha de inicio ni de término (aún no se definió el formato de carga de la planificación).
-- **Permisos por perfil:** Estudiante, Docente y Administrativo tienen las mismas funciones de solicitud. Las diferencias de permisos están por acordar.
+- **Permisos por perfil:** los límites de la tabla de la sección 2 son valores propuestos por el equipo (definidos en `RolePolicy`); se pueden ajustar con el cliente cambiando una sola clase.
 - **Notificaciones:** son locales y se muestran al iniciar sesión. El cliente mencionó correos, pero no quedó como obligación.
 - **Prioridad entre solicitudes** que compiten por el mismo espacio: decide el administrador al aprobar (no hay criterio automático).
 

@@ -1,6 +1,7 @@
 package com.example.reservaespacios.ui.reservation
 
 import com.example.reservaespacios.model.AcademicClass
+import com.example.reservaespacios.model.RolePolicy
 import com.example.reservaespacios.model.Space
 
 enum class ReservationField { SPACE, ACTIVITY, ATTENDEES, DATE, START_TIME, END_TIME }
@@ -18,9 +19,15 @@ data class ReservationFormUiState(
     val touched: Set<ReservationField> = emptySet(),
     val errors: Map<ReservationField, String> = emptyMap(),
     val isSubmitting: Boolean = false,
-    val isSubmitted: Boolean = false
+    val isSubmitted: Boolean = false,
+    /** Privilegios del perfil con sesión iniciada (límites de anticipación, duración y cupo). */
+    val policy: RolePolicy? = null,
+    /** Solicitudes activas del usuario (pendientes o aprobadas futuras). */
+    val activeRequests: Int = 0,
+    /** Error general del perfil (no pertenece a un campo): se alcanzó el máximo de solicitudes activas. */
+    val limitError: String? = null
 ) {
-    val isFormValid: Boolean get() = errors.isEmpty()
+    val isFormValid: Boolean get() = errors.isEmpty() && limitError == null
 
     /** El error solo se muestra cuando el usuario ya interactuó con el campo. */
     fun errorOf(field: ReservationField): String? =

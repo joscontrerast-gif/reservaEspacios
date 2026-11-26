@@ -16,4 +16,10 @@ object ReservationRules {
                 reservation.status == ReservationStatus.APPROVED
         return cancellable && !reservation.date.isBefore(today)
     }
+
+    /** Agenda general: reservas aprobadas que aún no ocurren, ordenadas por fecha y hora. */
+    fun upcomingApproved(reservations: List<Reservation>, today: LocalDate): List<Reservation> =
+        reservations
+            .filter { it.status == ReservationStatus.APPROVED && !it.date.isBefore(today) }
+            .sortedWith(compareBy({ it.date }, { it.startTime }))
 }

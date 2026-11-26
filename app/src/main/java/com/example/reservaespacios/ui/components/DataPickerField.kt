@@ -23,7 +23,7 @@ import java.time.LocalDate
 /**
  * Campo de fecha con calendario. El estado sigue siendo un texto "dd/MM/yyyy",
  * por lo que el ViewModel y los validadores no cambian.
- * [minDate]: los días anteriores aparecen deshabilitados en el calendario.
+ * [minDate] / [maxDate]: los días fuera de ese rango aparecen deshabilitados en el calendario.
  */
 @Composable
 fun DatePickerField(
@@ -34,7 +34,8 @@ fun DatePickerField(
     isValid: Boolean,
     onBlur: () -> Unit,
     modifier: Modifier = Modifier,
-    minDate: LocalDate? = null
+    minDate: LocalDate? = null,
+    maxDate: LocalDate? = null
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
@@ -52,7 +53,7 @@ fun DatePickerField(
     if (showDialog) {
         val state = rememberDatePickerState(
             initialSelectedDateMillis = DateTimeFormats.parseDate(value)?.let(DateTimeFormats::dateToPickerMillis),
-            selectableDates = remember(minDate) { MinDateSelectable(minDate) }
+            selectableDates = remember(minDate, maxDate) { DateRangeSelectable(minDate, maxDate) }
         )
         DatePickerDialog(
             onDismissRequest = {
@@ -83,9 +84,14 @@ fun DatePickerField(
     }
 }
 
-private class MinDateSelectable(private val minDate: LocalDate?) : SelectableDates {
+private class DateRangeSelectable(
+    private val minDate: LocalDate?,
+    private val maxDate: LocalDate?
+) : SelectableDates {
     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-        if (minDate == null) return true
-        return !DateTimeFormats.pickerMillisToDate(utcTimeMillis).isBefore(minDate)
+        val date = DateTimeFormats.pickerMillisToDate(utcTimeMillis)
+        if (minDate != null && date.isBefore(minDate)) return false
+        if (maxDate != null && date.isAfter(maxDate)) return false
+        return true
     }
 }

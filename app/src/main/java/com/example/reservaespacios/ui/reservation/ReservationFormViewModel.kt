@@ -3,15 +3,19 @@ package com.example.reservaespacios.ui.reservation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reservaespacios.AppContainer
+import com.example.reservaespacios.data.HolidayRepository
+import com.example.reservaespacios.data.HolidayResult
 import com.example.reservaespacios.data.ReservationDraft
 import com.example.reservaespacios.data.ReservationRepository
 import com.example.reservaespacios.data.ScheduleRepository
 import com.example.reservaespacios.data.SessionStore
 import com.example.reservaespacios.data.SpaceRepository
+import com.example.reservaespacios.model.Holiday
 import com.example.reservaespacios.model.Reservation
 import com.example.reservaespacios.model.RolePolicy
 import com.example.reservaespacios.model.User
 import com.example.reservaespacios.ui.reservation.ReservationField.*
+import com.example.reservaespacios.validation.HolidayRules
 import com.example.reservaespacios.validation.ReservationValidators
 import com.example.reservaespacios.validation.RolePolicyRules
 import com.example.reservaespacios.validation.ScheduleRules
@@ -26,8 +30,11 @@ class ReservationFormViewModel(
     private val spaceRepository: SpaceRepository = AppContainer.spaceRepository,
     private val scheduleRepository: ScheduleRepository = AppContainer.scheduleRepository,
     private val reservationRepository: ReservationRepository = AppContainer.reservationRepository,
-    private val sessionStore: SessionStore = AppContainer.sessionStore
+    private val sessionStore: SessionStore = AppContainer.sessionStore,
+    private val holidayRepository: HolidayRepository = AppContainer.holidayRepository
 ) : ViewModel() {
+
+    private var loadedHolidays: List<Holiday> = emptyList()
 
     private val _uiState = MutableStateFlow(initialState())
     val uiState: StateFlow<ReservationFormUiState> = _uiState.asStateFlow()
@@ -54,6 +61,13 @@ class ReservationFormViewModel(
         viewModelScope.launch {
             reservationRepository.reservations.collect { all ->
                 update { it.copy(activeRequests = activeFor(sessionStore.currentUser.value, all)) }
+            }
+        }
+        viewModelScope.launch {
+            val result = holidayRepository.getUpcomingHolidays()
+            if (result is HolidayResult.Success) {
+                loadedHolidays = result.holidays
+                update { it.copy(holidays = result.holidays) }
             }
         }
     }
@@ -113,6 +127,7 @@ class ReservationFormViewModel(
             ReservationFormUiState(
                 spaces = spaceRepository.spaces.value,
                 academicClasses = scheduleRepository.classes.value,
+                holidays = loadedHolidays,
                 policy = user?.let { RolePolicy.of(it.profile) },
                 activeRequests = activeFor(user, reservationRepository.reservations.value)
             )
@@ -146,11 +161,13 @@ class ReservationFormViewModel(
         val policyDurationError =
             if (start != null && end != null && end.isAfter(start)) RolePolicyRules.validateDuration(state.policy, start, end) else null
 
+        val holidayError = HolidayRules.validateNotHoliday(date, state.holidays)
+
         val errors = buildMap {
             ReservationValidators.validateSpace(state.space)?.let { put(SPACE, it) }
             ReservationValidators.validateActivity(state.activity)?.let { put(ACTIVITY, it) }
             ReservationValidators.validateAttendees(state.attendees, state.space)?.let { put(ATTENDEES, it) }
-            (ReservationValidators.validateDate(state.date, today) ?: policyDateError)
+            (ReservationValidators.validateDate(state.date, today) ?: policyDateError ?: holidayError)
                 ?.let { put(DATE, it) }
             ReservationValidators.validateStartTime(state.startTime)?.let { put(START_TIME, it) }
             (ReservationValidators.validateEndTime(state.startTime, state.endTime) ?: policyDurationError ?: classConflict)

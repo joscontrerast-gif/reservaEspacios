@@ -2,6 +2,9 @@ package com.example.reservaespacios
 
 import android.content.Context
 import com.example.reservaespacios.data.AuthRepository
+import com.example.reservaespacios.data.HolidayRepository
+import com.example.reservaespacios.data.RemoteHolidayRepository
+import com.example.reservaespacios.data.remote.ApiClient
 import com.example.reservaespacios.data.ReservationRepository
 import com.example.reservaespacios.data.ScheduleRepository
 import com.example.reservaespacios.data.SessionStore
@@ -34,6 +37,7 @@ object AppContainer {
         private set
     lateinit var notifier: ReservationNotifier
         private set
+    val holidayRepository: HolidayRepository by lazy { RemoteHolidayRepository(ApiClient.externalHolidayApi) }
 
     fun init(context: Context) {
         val appContext = context.applicationContext

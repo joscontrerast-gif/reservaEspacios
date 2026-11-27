@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
@@ -67,6 +68,7 @@ import com.example.reservaespacios.model.RolePolicy
 import com.example.reservaespacios.model.User
 import com.example.reservaespacios.nativeres.NotificationsOnLogin
 import com.example.reservaespacios.ui.agenda.AgendaRoute
+import com.example.reservaespacios.ui.holidays.HolidaysRoute
 import com.example.reservaespacios.ui.myreservations.MyReservationsRoute
 import com.example.reservaespacios.ui.myreservations.MyReservationsViewModel
 import com.example.reservaespacios.ui.reservation.ReservationFormRoute
@@ -86,7 +88,8 @@ private val adminTabs = listOf(
 private val userTabs = listOf(
     NavTab("Inicio", Icons.Filled.Home),
     NavTab("Solicitar", Icons.Filled.Add),
-    NavTab("Mis solicitudes", Icons.Filled.DateRange)
+    NavTab("Mis solicitudes", Icons.Filled.DateRange),
+    NavTab("Feriados", Icons.Filled.Celebration)
 )
 // Pestaña extra solo para los perfiles con acceso a la agenda general (ver RolePolicy.canViewAgenda)
 private val agendaTab = NavTab("Agenda", Icons.Filled.CalendarMonth)
@@ -226,6 +229,7 @@ fun HomeScreen(
                     }
                     tab == 1 -> ReservationFormRoute(viewModel = viewModel(key = "reservation-${user.id}"))
                     tab == 2 -> MyReservationsRoute(viewModel = viewModel(key = "mine-${user.id}"))
+                    tab == 3 -> HolidaysRoute()
                     else -> AgendaRoute()
                 }
             }
@@ -237,7 +241,15 @@ fun HomeScreen(
                     selected = selectedTab == index,
                     onClick = { selectedTab = index },
                     icon = { Icon(tab.icon, contentDescription = null) },
-                    label = { Text(tab.label) },
+                    label = {
+                        Text(
+                            tab.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = MaterialTheme.colorScheme.primary,
                         selectedTextColor = Color.White,

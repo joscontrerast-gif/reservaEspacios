@@ -1,6 +1,7 @@
 package com.example.reservaespacios.ui.reservation
 
 import com.example.reservaespacios.model.AcademicClass
+import com.example.reservaespacios.model.Holiday
 import com.example.reservaespacios.model.RolePolicy
 import com.example.reservaespacios.model.Space
 
@@ -10,6 +11,7 @@ enum class ReservationField { SPACE, ACTIVITY, ATTENDEES, DATE, START_TIME, END_
 data class ReservationFormUiState(
     val spaces: List<Space> = emptyList(),
     val academicClasses: List<AcademicClass> = emptyList(),
+    val holidays: List<Holiday> = emptyList(),
     val space: Space? = null,
     val activity: String = "",
     val attendees: String = "",
